@@ -1,0 +1,26 @@
+# Visual Studio
+.vs/
+.vscode/
+
+# Build results
+bin/
+obj/
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.userprefs
+
+# ASP.NET Core
+appsettings.Development.json
+
+# Test results
+TestResults/
+
+# JetBrains Rider
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
