@@ -125,4 +125,36 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// ============================================
+// Seed roles and a default admin account
+// ============================================
+
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+    foreach (var role in new[] { "Admin", "Customer" })
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+            await roleManager.CreateAsync(new IdentityRole(role));
+    }
+
+    const string adminEmail = "admin@urbanstep.com";
+    if (await userManager.FindByEmailAsync(adminEmail) == null)
+    {
+        var admin = new ApplicationUser
+        {
+            UserName = adminEmail,
+            Email = adminEmail,
+            FullName = "Urban Step Admin",
+            EmailConfirmed = true
+        };
+
+        var result = await userManager.CreateAsync(admin, "Admin@123");
+        if (result.Succeeded)
+            await userManager.AddToRoleAsync(admin, "Admin");
+    }
+}
+
 app.Run();
