@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using UrbanStep.Models;
 
 namespace UrbanStep.Data
@@ -30,6 +31,27 @@ namespace UrbanStep.Data
 
                 entity.Property(p => p.DiscountPrice)
                     .HasPrecision(18, 2);
+
+                var stringListComparer = new ValueComparer<List<string>>(
+                    (a, b) => (a ?? new()).SequenceEqual(b ?? new()),
+                    v => v.Aggregate(0, (hash, s) => HashCode.Combine(hash, s.GetHashCode())),
+                    v => v.ToList());
+
+                entity.Property(p => p.Colors)
+                    .HasConversion(
+                        v => string.Join('|', v),
+                        v => string.IsNullOrEmpty(v)
+                            ? new List<string>()
+                            : v.Split('|', StringSplitOptions.RemoveEmptyEntries).ToList())
+                    .Metadata.SetValueComparer(stringListComparer);
+
+                entity.Property(p => p.Sizes)
+                    .HasConversion(
+                        v => string.Join('|', v),
+                        v => string.IsNullOrEmpty(v)
+                            ? new List<string>()
+                            : v.Split('|', StringSplitOptions.RemoveEmptyEntries).ToList())
+                    .Metadata.SetValueComparer(stringListComparer);
 
                 entity.HasOne(p => p.Category)
                     .WithMany(c => c.Products)

@@ -87,6 +87,26 @@ namespace UrbanStep.Controllers
             return await BuildAuthResponse(user);
         }
 
+        [Authorize]
+        [HttpPut("me")]
+        public async Task<ActionResult<AuthResponseDto>> UpdateProfile(UpdateProfileDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = userId == null ? null : await _userManager.FindByIdAsync(userId);
+            if (user == null) return Unauthorized();
+
+            user.FullName = dto.FullName;
+            user.PhoneNumber = dto.PhoneNumber;
+
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+                return BadRequest(new { errors = result.Errors.Select(e => e.Description) });
+
+            return await BuildAuthResponse(user);
+        }
+
         [Authorize(Roles = "Admin")]
         [HttpPost("promote-to-admin")]
         public async Task<ActionResult<AuthResponseDto>> PromoteToAdmin(PromoteToAdminDto dto)
@@ -124,6 +144,7 @@ namespace UrbanStep.Controllers
                 UserId = user.Id,
                 FullName = user.FullName,
                 Email = user.Email ?? string.Empty,
+                PhoneNumber = user.PhoneNumber,
                 Role = roles.FirstOrDefault() ?? "Customer"
             };
         }

@@ -155,6 +155,20 @@ using (var scope = app.Services.CreateScope())
         if (result.Succeeded)
             await userManager.AddToRoleAsync(admin, "Admin");
     }
+
+    // ============================================
+    // Seed top-level product categories
+    // ============================================
+
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    foreach (var name in new[] { "Shoes", "Clothing", "Accessories" })
+    {
+        if (!await db.Categories.AnyAsync(c => c.Name == name))
+            db.Categories.Add(new Category { Name = name });
+    }
+
+    await db.SaveChangesAsync();
 }
 
 app.Run();
